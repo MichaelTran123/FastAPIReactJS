@@ -15,3 +15,12 @@ async def create_user(
     if db_user:
         raise _fastapi.HTTPException(status_code=400, detail=f"Email already in user")
     return await _services.create_user(user, db)
+
+@app.post("api/token")
+async def genarate_token(
+            form_data: _security.OAuth2PasswordRequestForm = _fastapi.Depends(),
+            db: _orm.Session = _fastapi.Depends(_services.get_db)):
+    user = await _services.authenticate_user(form_data.username, form_data.password, db)
+    if not user:
+        raise _fastapi.HTTPException(status_code=401, detail="Invalid Credenticals")
+    return await _services.create_token(user)
